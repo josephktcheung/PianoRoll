@@ -10,6 +10,7 @@ public struct PianoRoll: View {
     var gridSize: CGSize
     var noteColor: Color
     var gridColor: Color
+    var readOnly: Bool
 
     /// Initialize PianoRoll with a binding to a model and a color
     /// - Parameters:
@@ -19,12 +20,14 @@ public struct PianoRoll: View {
         model: Binding<PianoRollModel>,
         noteColor: Color = .accentColor,
         gridSize: CGSize = CGSize(width: 80, height: 40),
-        gridColor: Color = Color(red: 15.0 / 255.0, green: 17.0 / 255.0, blue: 16.0 / 255.0)
+        gridColor: Color = Color(red: 15.0 / 255.0, green: 17.0 / 255.0, blue: 16.0 / 255.0),
+        readOnly: Bool = false
     ) {
         _model = model
         self.noteColor = noteColor
         self.gridSize = gridSize
         self.gridColor = gridColor
+        self.readOnly = readOnly
     }
 
 
@@ -41,7 +44,7 @@ public struct PianoRoll: View {
                 .stroke(lineWidth: 0.5)
                 .foregroundColor(gridColor)
                 .contentShape(Rectangle())
-                .gesture(TapGesture().sequenced(before: dragGesture))
+                .gesture(readOnly ? nil : TapGesture().sequenced(before: dragGesture))
             ForEach(model.notes) { note in
                 PianoRollNoteView(
                     note: $model.notes[model.notes.firstIndex(of: note)!],
@@ -49,9 +52,11 @@ public struct PianoRoll: View {
                     color: noteColor,
                     sequenceLength: model.length,
                     sequenceHeight: model.height,
-                    isContinuous: true
+                    isContinuous: true,
+                    readOnly: readOnly
                 )
                 .onTapGesture {
+                    if readOnly { return }
                     model.notes.removeAll(where: { $0 == note })
                 }
             }
